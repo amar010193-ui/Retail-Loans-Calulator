@@ -1,0 +1,26 @@
+{
+  "name": "Retail Loans Eligibility Calculator",
+  "short_name": "LoanCalc",
+  "description": "Retail Assets Loan Eligibility Calculator",
+  "start_url": "/retail-loans-calculator/",
+  "scope": "/retail-loans-calculator/",
+  "display": "standalone",
+  "background_color": "#0A1628",
+  "theme_color": "#0A1628",
+  "orientation": "portrait",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192x192/0A1628/C8972A?text=LC",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://via.placeholder.com/512x512/0A1628/C8972A?text=LC",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
