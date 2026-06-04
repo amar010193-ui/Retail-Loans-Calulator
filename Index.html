@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0A1628">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="LoanCalc">
+<link rel="manifest" href="/Loan-Calculator/manifest.json">
+<title>Loan Eligibility Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('/Loan-Calculator/sw.js').catch(function(){});
+  });
+}
+</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0A1628;--navy2:#152340;
+  --gold:#C8972A;--gold2:#E8B84B;
+  --cream:#F7F3EE;--cream2:#EDE7DC;--cream3:#DDD5C8;
+  --text:#0A1628;--text2:#3A4A6B;--text3:#6B7A99;
+  --white:#FFFFFF;--red:#C0392B;--green:#1A7A4A;
+  --r:10px;--rl:16px;
+  --sh:0 2px 12px rgba(10,22,40,0.08);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;font-size:15px}
+.screen{display:none;min-height:100vh;flex-direction:column}
+.screen.active{display:flex}
+.topbar{background:var(--navy);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.topbar-back{background:none;border:none;color:#fff;cursor:pointer;font-size:20px;opacity:0.8;line-height:1;padding:2px 6px}
+.topbar-back:hover{opacity:1}
+.tb-title{font-family:'DM Serif Display',serif;font-size:16px;font-weight:400}
+.tb-sub{font-size:11px;opacity:0.55;margin-top:1px}
+.wh{background:var(--navy);padding:36px 22px 28px;text-align:center}
+.wlogo{font-size:11px;letter-spacing:2.5px;color:var(--gold2);text-transform:uppercase;margin-bottom:12px;font-weight:500}
+.wtitle{font-family:'DM Serif Display',serif;font-size:27px;color:#fff;line-height:1.3;margin-bottom:6px}
+.wsub{font-size:12px;color:rgba(255,255,255,0.45)}
+.wb{padding:22px 18px 28px;flex:1}
+.slabel{font-size:10px;font-weight:600;letter-spacing:1.8px;text-transform:uppercase;color:var(--gold);margin-bottom:11px;padding-bottom:5px;border-bottom:1px solid var(--cream3)}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:2px}
+.pc{background:var(--white);border-radius:var(--rl);padding:18px 12px 14px;border:1.5px solid var(--cream3);cursor:pointer;transition:all 0.17s;text-align:center;position:relative;overflow:hidden}
+.pc:hover:not(.dis){border-color:var(--gold);transform:translateY(-2px);box-shadow:0 8px 24px rgba(10,22,40,0.12)}
+.pc.sel{border-color:var(--gold);background:var(--navy)}
+.pc.sel .pname{color:#fff}
+.pc.sel .pdesc{color:rgba(255,255,255,0.5)}
+.picon{font-size:24px;margin-bottom:7px;display:block}
+.pname{font-size:13px;font-weight:600;color:var(--text)}
+.pdesc{font-size:11px;color:var(--text3);margin-top:2px}
+.pc.dis{opacity:0.45;cursor:not-allowed}
+.sbadge{position:absolute;top:6px;right:6px;background:var(--cream2);color:var(--text3);font-size:9px;padding:2px 5px;border-radius:20px}
+.btn{width:100%;padding:13px;border:none;border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.15s;margin-top:10px}
+.btn-nav{background:var(--navy);color:#fff}
+.btn-nav:hover{background:var(--navy2)}
+.btn-nav:disabled{opacity:0.35;cursor:not-allowed}
+.btn-out{background:transparent;color:var(--navy);border:1.5px solid var(--navy)}
+.btn-out:hover{background:var(--navy);color:#fff}
+.btn-gold{background:var(--gold);color:var(--navy);font-weight:600}
+.btn-gold:hover{background:var(--gold2)}
+.fb{padding:16px 16px 28px;flex:1}
+.fc{background:var(--white);border-radius:var(--rl);padding:16px;border:0.5px solid var(--cream3);margin-bottom:13px;box-shadow:var(--sh)}
+.fg{margin-bottom:12px}
+.fg:last-child{margin-bottom:0}
+label{display:block;font-size:12px;font-weight:500;color:var(--text2);margin-bottom:4px}
+label .req{color:var(--red);margin-left:2px}
+label .opt{color:var(--text3);font-weight:400;font-size:11px;margin-left:3px}
+input,select{width:100%;padding:9px 12px;border:1px solid var(--cream3);border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:var(--white);outline:none;appearance:none;-webkit-appearance:none;transition:border 0.15s}
+input:focus,select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(200,151,42,0.1)}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%236B7A99' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 11px center;padding-right:30px}
+.pfx{position:relative}
+.pfx span{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--text3);pointer-events:none}
+.pfx input{padding-left:22px}
+.hint{font-size:11px;color:var(--text3);margin-top:3px;line-height:1.5}
+.hint.w{color:var(--red)}
+.hint.ok{color:var(--green)}
+.tgl-g{display:flex;border:1px solid var(--cream3);border-radius:var(--r);overflow:hidden}
+.tgl{flex:1;padding:8px;font-family:'DM Sans',sans-serif;font-size:13px;border:none;cursor:pointer;background:var(--white);color:var(--text2);transition:all 0.14s}
+.tgl.on{background:var(--navy);color:#fff;font-weight:500}
+.atabs{display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap}
+.atab{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;border:1px solid var(--cream3);cursor:pointer;transition:all 0.14s;background:var(--white);color:var(--text2)}
+.atab.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.ibox{background:rgba(200,151,42,0.07);border:1px solid rgba(200,151,42,0.2);border-radius:var(--r);padding:10px 12px;margin-bottom:11px}
+.ibox-t{font-size:10px;font-weight:600;color:var(--gold);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.8px}
+.ibox p{font-size:12px;color:var(--text2);line-height:1.5}
+.wbox{background:rgba(192,57,43,0.06);border:1px solid rgba(192,57,43,0.17);border-radius:var(--r);padding:10px 12px;margin-bottom:11px;font-size:12px;color:var(--red);line-height:1.5}
+.dvd{border:none;border-top:1px solid var(--cream2);margin:11px 0}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sw-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0}
+.sw-row label{margin:0;font-size:13px;flex:1;line-height:1.4}
+.sw{position:relative;display:inline-block;width:38px;height:21px;flex-shrink:0;margin-left:8px}
+.sw input{opacity:0;width:0;height:0}
+.sw-sl{position:absolute;cursor:pointer;inset:0;background:var(--cream3);border-radius:11px;transition:.25s}
+.sw-sl:before{position:absolute;content:"";height:15px;width:15px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.25s}
+input:checked+.sw-sl{background:var(--navy)}
+input:checked+.sw-sl:before{transform:translateX(17px)}
+.steps{display:flex;align-items:center;padding:9px 16px;background:var(--white);border-bottom:0.5px solid var(--cream2)}
+.step{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text3);flex:1}
+.step.on{color:var(--navy);font-weight:500}
+.step.done{color:var(--green)}
+.sdot{width:19px;height:19px;border-radius:50%;border:1.5px solid var(--cream3);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0}
+.step.on .sdot{background:var(--navy);border-color:var(--navy);color:#fff}
+.step.done .sdot{background:var(--green);border-color:var(--green);color:#fff}
+.sline{height:1px;background:var(--cream3);flex:1;margin:0 2px}
+.rh{background:var(--navy);padding:24px 22px 20px;text-align:center}
+.rtag{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:6px}
+.ramt{font-family:'DM Serif Display',serif;font-size:34px;color:#fff;letter-spacing:-0.5px}
+.rsub{font-size:12px;color:var(--gold2);margin-top:3px}
+.rb{padding:16px;flex:1}
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:13px}
+.stat{background:var(--white);border-radius:var(--r);padding:12px;border:0.5px solid var(--cream3);text-align:center}
+.slbl{font-size:10px;color:var(--text3);margin-bottom:3px}
+.sval{font-size:15px;font-weight:600;color:var(--navy)}
+.brow{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:0.5px solid var(--cream2);font-size:13px;gap:8px}
+.brow:last-child{border-bottom:none}
+.bl{color:var(--text2);line-height:1.4;flex:1}
+.bv{font-weight:500;text-align:right;white-space:nowrap}
+.bv.r{color:var(--red)}
+.bv.g{color:var(--green);font-size:14px;font-weight:600}
+.bv.b{color:#1560a8;font-weight:600}
+.bsep{border:none;border-top:1.5px dashed var(--cream3);margin:5px 0}
+.plbl{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:0.8px;text-transform:uppercase;padding:7px 0 3px}
+.footer{text-align:center;margin-top:24px;padding-top:18px;border-top:1px solid var(--cream3)}
+.footer-by{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3);margin-bottom:4px}
+.footer-name{font-size:14px;font-weight:600;color:var(--text)}
+.footer-pf{font-size:12px;color:var(--text3);margin-top:2px}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ WELCOME ═══════════════ -->
+<div class="screen active" id="s-home">
+  <div class="wh">
+    <div class="wlogo">Retail Assets</div>
+    <div class="wtitle">Retail Loans<br>Eligibility Calculator</div>
+    <div class="wsub">Income-based eligibility tool</div>
+  </div>
+  <div class="wb">
+    <div class="slabel">Select Product</div>
+    <div class="pgrid">
+      <div class="pc" id="pc-hl" onclick="selP('hl')"><span class="picon">🏠</span><div class="pname">Home Loan</div><div class="pdesc">Purchase · Construction</div></div>
+      <div class="pc" id="pc-vl" onclick="selP('vl')"><span class="picon">🚗</span><div class="pname">Vehicle Loan</div><div class="pdesc">4W · 2W · New · Old</div></div>
+      <div class="pc" id="pc-ml" onclick="selP('ml')"><span class="picon">🏦</span><div class="pname">Mortgage Loan</div><div class="pdesc">Property · LAP</div></div>
+      <div class="pc" id="pc-pl" onclick="selP('pl')"><span class="picon">👤</span><div class="pname">Personal Loan</div><div class="pdesc">Govt · Pensioner</div></div>
+    </div>
+    <button class="btn btn-nav" id="btn-go" disabled onclick="startProduct()">Proceed →</button>
+    <div class="footer">
+      <div class="footer-by">Created by</div>
+      <div class="footer-name">Amarnath Akella</div>
+      <div class="footer-pf">PF No. 770943</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ HOME LOAN ═══════════════ -->
+<div class="screen" id="s-hl">
+  <div class="topbar">
+    <button class="topbar-back" onclick="goHome()">←</button>
+    <div><div class="tb-title">Home Loan Eligibility</div><div class="tb-sub">Retail Assets</div></div>
+  </div>
+  <div class="steps">
+    <div class="step on" id="hl-st1"><div class="sdot">1</div><span>Applicant</span></div><div class="sline"></div>
+    <div class="step" id="hl-st2"><div class="sdot">2</div><span>Income</span></div><div class="sline"></div>
+    <div class="step" id="hl-st3"><div class="sdot">3</div><span>Loan Terms</span></div>
+  </div>
+  <div class="fb">
+    <div class="fc">
+      <div class="slabel">Applicant Details</div>
+      <div class="fg">
+        <label>Loan Purpose <span class="req">*</span></label>
+        <select id="hl-purpose" onchange="onHLPurpose()">
+          <option value="">— Select —</option>
+          <option value="purchase">Purchase of Residential Unit</option>
+          <option value="construction">Construction on Existing Land</option>
+          <option value="composite">Composite (Plot + Construction)</option>
+          <option value="extension">Completion / Extension of Existing Unit</option>
+          <option value="takeover">Takeover from Other Bank/FI</option>
+          <option value="repair">Repair / Renovation</option>
+        </select>
+      </div>
+      <div id="hl-repair-note" class="wbox" style="display:none">⚠️ Repair/Renovation: Max tenure 15 years · Max loan ₹30 lakh</div>
+      <div class="fg">
+        <label>Number of Co-Applicants <span class="opt">(income to be considered)</span></label>
+        <select id="hl-ncoapp" onchange="hlBuildForms()">
+          <option value="0">0 — Applicant only</option>
+          <option value="1">1</option><option value="2">2</option>
+          <option value="3">3</option><option value="4">4</option>
+          <option value="5">5 (max)</option>
+        </select>
+        <div class="hint">All co-owners of the property must join as co-applicants.</div>
+      </div>
+      <div class="fg">
+        <label>Primary Applicant — Employment Type <span class="req">*</span></label>
+        <div class="tgl-g">
+          <button class="tgl on" id="hl-tsal" onclick="setHLEmp('salaried')">Salaried</button>
+          <button class="tgl" id="hl-tnsal" onclick="setHLEmp('nonsalaried')">Non-Salaried</button>
+        </div>
+        <div class="hint">Each co-applicant can also be switched independently after adding.</div>
+      </div>
+    </div>
+
+    <div class="fc" id="hl-income-card" style="display:none">
+      <div class="slabel">Income Details</div>
+      <div class="atabs" id="hl-tabs"></div>
+      <div id="hl-forms"></div>
+      <div id="hl-combsus-wrap" style="display:none">
+        <div class="dvd"></div>
+        <div class="sw-row">
+          <label>Combined sustenance? (All applicants staying together, within permissible age)</label>
+          <label class="sw"><input type="checkbox" id="hl-combsus"><span class="sw-sl"></span></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="fc" id="hl-terms-card" style="display:none">
+      <div class="slabel">Loan Terms</div>
+      <div class="fg">
+        <label>CIBIL Score Category</label>
+        <select id="hl-cibil" onchange="onHLCibil()">
+          <option value="hi">700 and above (or -1 / 1 to 5)</option>
+          <option value="lo">Below 700</option>
+        </select>
+      </div>
+      <div id="hl-cibil-warn" class="wbox" style="display:none">⚠️ CIBIL below 700 — Higher interest rate applicable. Additional scrutiny applies.</div>
+      <div class="fg">
+        <label>Rate of Interest (% per annum) <span class="req">*</span></label>
+        <input type="number" id="hl-roi" placeholder="e.g. 8.75" step="0.01" min="1" max="20">
+      </div>
+      <div class="fg">
+        <label>Repayment Tenure (months) <span class="req">*</span></label>
+        <input type="number" id="hl-tenure" placeholder="Max 360 (purchase) / 180 (repair)" min="1" max="360" oninput="onHLTenure()">
+        <div id="hl-tenure-hint" class="hint"></div>
+      </div>
+      <div class="fg">
+        <label>Moratorium Period (months) <span class="opt">if any</span></label>
+        <input type="number" id="hl-mora" placeholder="0 if none" min="0" max="48" value="0" oninput="onHLMora()">
+        <div id="hl-mora-hint" class="hint">During moratorium, only interest is paid. EMI calculated on remaining tenure after moratorium.</div>
+      </div>
+    </div>
+    <button class="btn btn-nav" id="hl-calc-btn" style="display:none" onclick="calcHL()">Calculate Eligibility →</button>
+  </div>
+</div>
+
+<!-- ═══════════════ VEHICLE LOAN ═══════════════ -->
+<div class="screen" id="s-vl">
+  <div class="topbar">
+    <button class="topbar-back" onclick="goHome()">←</button>
+    <div><div class="tb-title">Vehicle Loan Eligibility</div><div class="tb-sub">Retail Assets</div></div>
+  </div>
+  <div class="steps">
+    <div class="step on" id="vl-st1"><div class="sdot">1</div><span>Applicant</span></div><div class="sline"></div>
+    <div class="step" id="vl-st2"><div class="sdot">2</div><span>Income</span></div><div class="sline"></div>
+    <div class="step" id="vl-st3"><div class="sdot">3</div><span>Loan Terms</span></div>
+  </div>
+  <div class="fb">
+    <div class="fc">
+      <div class="slabel">Applicant Details</div>
+      <div class="fg">
+        <label>Applicant Type <span class="req">*</span></label>
+        <select id="vl-apptype" onchange="onVLAppType()">
+          <option value="">— Select —</option>
+          <option value="individual">Individual</option>
+          <option value="proprietary">Proprietary Concern</option>
+          <option value="partnership">Partnership Firm</option>
+          <option value="company">Company</option>
+        </select>
+      </div>
+      <div id="vl-ind-extra" style="display:none">
+        <div class="fg">
+          <label>Vehicle Type <span class="req">*</span></label>
+          <select id="vl-vtype" onchange="vlBuildForms()">
+            <option value="">— Select —</option>
+            <option value="new4w">New 4-Wheeler</option>
+            <option value="old4w">Old 4-Wheeler (max 3 yrs old)</option>
+            <option value="new2w">New 2-Wheeler</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Employment Type <span class="req">*</span></label>
+          <div class="tgl-g">
+            <button class="tgl on" id="vl-tsal" onclick="setVLEmp('salaried')">Salaried</button>
+            <button class="tgl" id="vl-tnsal" onclick="setVLEmp('nonsalaried')">Non-Salaried</button>
+          </div>
+        </div>
+        <div class="fg">
+          <label>Number of Co-Applicants <span class="opt">(income to be considered)</span></label>
+          <select id="vl-ncoapp" onchange="vlBuildForms()">
+            <option value="0">0 — Applicant only</option>
+            <option value="1">1</option><option value="2">2 (max)</option>
+          </select>
+          <div class="hint">Max 3 total. Include co-applicant only if their income is considered.</div>
+        </div>
+      </div>
+      <div id="vl-nonind-extra" style="display:none">
+        <div id="vl-nonind-note" class="ibox"></div>
+        <div class="fg">
+          <label>Vehicle Type <span class="req">*</span></label>
+          <select id="vl-vtype-ni" onchange="vlBuildForms()">
+            <option value="">— Select —</option>
+            <option value="new4w">New 4-Wheeler</option>
+            <option value="old4w">Old 4-Wheeler (max 3 yrs old)</option>
+            <option value="new2w">New 2-Wheeler</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="fc" id="vl-income-card" style="display:none">
+      <div class="slabel">Income Details</div>
+      <div class="atabs" id="vl-tabs"></div>
+      <div id="vl-forms"></div>
+      <div id="vl-combsus-wrap" style="display:none">
+        <div class="dvd"></div>
+        <div class="sw-row">
+          <label>Combined sustenance? (All applicants staying together, within permissible age)</label>
+          <label class="sw"><input type="checkbox" id="vl-combsus"><span class="sw-sl"></span></label>
+        </div>
+      </div>
+    </div>
+    <div class="fc" id="vl-terms-card" style="display:none">
+      <div class="slabel">Loan Terms</div>
+      <div class="fg">
+        <label>CIBIL Score Category</label>
+        <select id="vl-cibil" onchange="onVLCibil()">
+          <option value="hi">700 and above (or -1 / 1 to 5)</option>
+          <option value="lo">Below 700</option>
+        </select>
+      </div>
+      <div id="vl-cibil-warn" class="wbox" style="display:none">⚠️ CIBIL below 700 — Third-party guarantee required.</div>
+      <div class="fg">
+        <label>Rate of Interest (% per annum) <span class="req">*</span></label>
+        <input type="number" id="vl-roi" placeholder="e.g. 9.50" step="0.01" min="1" max="25">
+      </div>
+      <div class="fg">
+        <label>Repayment Tenure (months) <span class="req">*</span></label>
+        <input type="number" id="vl-tenure" placeholder="Max 84 / 60 / 36" min="1" max="84" oninput="onVLTenure()">
+        <div id="vl-tenure-hint" class="hint"></div>
+      </div>
+    </div>
+    <button class="btn btn-nav" id="vl-calc-btn" style="display:none" onclick="calcVL()">Calculate Eligibility →</button>
+  </div>
+</div>
+
+<!-- ═══════════════ MORTGAGE LOAN ═══════════════ -->
+<div class="screen" id="s-ml">
+  <div class="topbar">
+    <button class="topbar-back" onclick="goHome()">←</button>
+    <div><div class="tb-title">Mortgage Loan Eligibility</div><div class="tb-sub">Retail Assets</div></div>
+  </div>
+  <div class="steps">
+    <div class="step on" id="ml-st1"><div class="sdot">1</div><span>Applicant</span></div><div class="sline"></div>
+    <div class="step" id="ml-st2"><div class="sdot">2</div><span>Income</span></div><div class="sline"></div>
+    <div class="step" id="ml-st3"><div class="sdot">3</div><span>Loan Terms</span></div>
+  </div>
+  <div class="fb">
+    <div class="fc">
+      <div class="slabel">Applicant Details</div>
+      <div class="fg">
+        <label>Number of Co-Applicants <span class="opt">(income to be considered)</span></label>
+        <select id="ml-ncoapp" onchange="mlBuildForms()">
+          <option value="0">0 — Applicant only</option>
+          <option value="1">1</option><option value="2">2</option>
+          <option value="3">3</option><option value="4">4</option>
+          <option value="5">5 (max)</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Primary Applicant — Employment Type <span class="req">*</span></label>
+        <div class="tgl-g">
+          <button class="tgl on" id="ml-tsal" onclick="setMLEmp('salaried')">Salaried</button>
+          <button class="tgl" id="ml-tnsal" onclick="setMLEmp('nonsalaried')">Non-Salaried</button>
+        </div>
+        <div class="hint">Each co-applicant can also be switched independently after adding.</div>
+      </div>
+    </div>
+    <div class="fc" id="ml-income-card" style="display:none">
+      <div class="slabel">Income Details</div>
+      <div class="atabs" id="ml-tabs"></div>
+      <div id="ml-forms"></div>
+      <div id="ml-combsus-wrap" style="display:none">
+        <div class="dvd"></div>
+        <div class="sw-row">
+          <label>Combined sustenance? (All applicants staying together, within permissible age)</label>
+          <label class="sw"><input type="checkbox" id="ml-combsus"><span class="sw-sl"></span></label>
+        </div>
+      </div>
+    </div>
+    <div class="fc" id="ml-terms-card" style="display:none">
+      <div class="slabel">Loan Terms</div>
+      <div class="fg">
+        <label>CIBIL Score Category</label>
+        <select id="ml-cibil" onchange="onMLCibil()">
+          <option value="hi">700 and above (or -1 / 1 to 5)</option>
+          <option value="lo">Below 700</option>
+        </select>
+      </div>
+      <div id="ml-cibil-warn" class="wbox" style="display:none">⚠️ CIBIL below 700 — Additional rate premium applicable.</div>
+      <div class="fg">
+        <label>Rate of Interest (% per annum) <span class="req">*</span></label>
+        <input type="number" id="ml-roi" placeholder="e.g. 10.00" step="0.01" min="1" max="20">
+      </div>
+      <div class="fg">
+        <label>Repayment Tenure (months) <span class="req">*</span></label>
+        <input type="number" id="ml-tenure" placeholder="Max 180 months (15 years)" min="1" max="180" oninput="onMLTenure()">
+        <div id="ml-tenure-hint" class="hint"></div>
+      </div>
+    </div>
+    <button class="btn btn-nav" id="ml-calc-btn" style="display:none" onclick="calcML()">Calculate Eligibility →</button>
+  </div>
+</div>
+
+<!-- ═══════════════ PERSONAL LOAN ═══════════════ -->
+<div class="screen" id="s-pl">
+  <div class="topbar">
+    <button class="topbar-back" onclick="goHome()">←</button>
+    <div><div class="tb-title">Personal Loan Eligibility</div><div class="tb-sub">Retail Assets</div></div>
+  </div>
+  <div class="fb">
+    <div class="fc">
+      <div class="slabel">Scheme Selection</div>
+      <div class="fg">
+        <label>Loan Scheme <span class="req">*</span></label>
+        <select id="pl-scheme" onchange="onPLScheme()">
+          <option value="">— Select —</option>
+          <option value="govt">Govt Employee Personal Loan (PL001)</option>
+          <option value="pension">Union Cash Loan — Pensioner (CLPEN)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- GOVT EMPLOYEE -->
+    <div id="pl-govt-wrap" style="display:none">
+      <div class="fc">
+        <div class="slabel">Applicant — Govt Employee</div>
+        <div class="ibox"><div class="ibox-t">Scheme PL001</div><p>Confirmed/permanent Govt / PSU / Defence / Central / State Govt employee. No co-applicant income considered. Guarantor may be taken.</p></div>
+        <div class="fg"><label>Date of Birth <span class="req">*</span></label>
+        <input type="date" id="pl-dob" onchange="onPLDob()">
+        <div id="pl-dob-hint" class="hint"></div></div>
+        <div class="fg"><label>Age of Retirement (years)</label>
+        <select id="pl-retage" onchange="onPLDob()">
+          <option value="58">58</option><option value="59">59</option>
+          <option value="60" selected>60</option><option value="62">62</option><option value="65">65</option>
+        </select></div>
+        <div class="fg"><label>Salary Account with Bank?</label>
+        <div class="tgl-g">
+          <button class="tgl on" id="pl-sal-yes" onclick="setPLSalAcc(true)">Yes</button>
+          <button class="tgl" id="pl-sal-no" onclick="setPLSalAcc(false)">No</button>
+        </div>
+        <div class="hint" id="pl-sal-hint">Max loan: ₹25 lakh (with salary a/c) · ₹15 lakh (without)</div></div>
+        <div class="fg"><label>(A) Gross Monthly Salary — latest payslip (₹/month) <span class="req">*</span></label>
+        <div class="pfx"><span>₹</span><input type="number" id="pl-gross" placeholder="Monthly gross salary" min="0" oninput="livePLSus()"></div></div>
+        <div class="fg"><label>Bonus / Incentive — avg 2 yrs Form-16 (₹/year) <span class="opt">if any</span></label>
+        <div class="pfx"><span>₹</span><input type="number" id="pl-bonus" placeholder="Annual average" min="0" value="0" oninput="livePLSus()"></div></div>
+        <div class="fg"><label>(B) Income Tax Deduction (₹/month)</label>
+        <div class="pfx"><span>₹</span><input type="number" id="pl-tax" placeholder="TDS per month" min="0" value="0" oninput="livePLSus()"></div></div>
+        <div id="pl-sus-box" class="ibox" style="display:none"><div class="ibox-t">Sustenance</div><p id="pl-sus-txt"></p></div>
+        <div class="fg"><label>(D) Existing EMI Obligations (₹/month)</label>
+        <div class="pfx"><span>₹</span><input type="number" id="pl-emi" placeholder="0 if none" min="0" value="0"></div></div>
+        <div class="fg"><label>(E) Other Recurring Outgoings (₹/month)</label>
+        <div class="pfx"><span>₹</span><input type="number" id="pl-othr" placeholder="LIC, PF etc." min="0" value="0"></div></div>
+      </div>
+      <div class="fc">
+        <div class="slabel">Loan Terms</div>
+        <div class="fg"><label>Rate of Interest (% per annum) <span class="req">*</span></label>
+        <input type="number" id="pl-roi" placeholder="e.g. 11.00" step="0.01" min="1" max="25"></div>
+        <div class="fg"><label>Repayment Tenure (months) <span class="req">*</span></label>
+        <input type="number" id="pl-tenure" placeholder="Max 84 months, co-terminus with retirement" min="1" max="84" oninput="onPLTenure()">
+        <div id="pl-tenure-hint" class="hint"></div></div>
+      </div>
+      <button class="btn btn-nav" onclick="calcPLGovt()">Calculate Eligibility →</button>
+    </div>
+
+    <!-- PENSIONER -->
+    <div id="pl-pension-wrap" style="display:none">
+      <div class="fc">
+        <div class="slabel">Applicant — Pensioner</div>
+        <div class="ibox"><div class="ibox-t">Union Cash Loan (CLPEN)</div><p>Retired Govt / Semi-Govt / reputed private org pensioner OR family pensioner drawing pension through our bank. No co-applicant. Guarantor may be taken.</p></div>
+        <div class="fg"><label>Pensioner Type</label>
+        <div class="tgl-g">
+          <button class="tgl on" id="pen-t1" onclick="setPenType('pensioner')">Pensioner</button>
+          <button class="tgl" id="pen-t2" onclick="setPenType('family')">Family Pensioner</button>
+        </div></div>
+        <div class="fg"><label>Date of Birth <span class="req">*</span></label>
+        <input type="date" id="pen-dob" onchange="onPenDob()">
+        <div id="pen-dob-hint" class="hint"></div></div>
+        <div class="fg"><label>Net Monthly Pension (₹/month) <span class="req">*</span></label>
+        <div class="pfx"><span>₹</span><input type="number" id="pen-nmp" placeholder="Net pension actually received" min="0" oninput="onPenNMP()"></div>
+        <div class="hint">Net pension = Gross pension − deductions. Sustenance = 50% of net pension.</div></div>
+        <div id="pen-calc-preview" class="ibox" style="display:none"><div class="ibox-t">Quick Preview</div><p id="pen-preview-txt"></p></div>
+        <div class="fg"><label>Rate of Interest (% per annum) <span class="req">*</span></label>
+        <input type="number" id="pen-roi" placeholder="EBLR + 2.10 (currently ~11%)" step="0.01" min="1" max="25"></div>
+      </div>
+      <button class="btn btn-nav" onclick="calcPension()">Calculate Eligibility →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ RESULT ═══════════════ -->
+<div class="screen" id="s-result">
+  <div class="topbar">
+    <button class="topbar-back" id="res-back-btn" onclick="goResultBack()">←</button>
+    <div><div class="tb-title">Eligibility Result</div><div class="tb-sub" id="res-product-label">Retail Assets</div></div>
+  </div>
+  <div class="rh">
+    <div class="rtag">Eligible Loan Amount</div>
+    <div class="ramt" id="r-amt">₹0</div>
+    <div class="rsub" id="r-sub"></div>
+  </div>
+  <div class="rb">
+    <div class="sgrid">
+      <div class="stat"><div class="slbl">Max Monthly EMI</div><div class="sval" id="r-emi">₹0</div></div>
+      <div class="stat"><div class="slbl">Effective Tenure</div><div class="sval" id="r-tenure">—</div></div>
+      <div class="stat"><div class="slbl">Total Interest</div><div class="sval" id="r-int">₹0</div></div>
+      <div class="stat"><div class="slbl">Total Payable</div><div class="sval" id="r-total">₹0</div></div>
+    </div>
+    <div class="fc"><div class="slabel">Calculation Breakdown</div><div id="r-breakdown"></div></div>
+    <div class="fc" id="r-notes-card" style="display:none"><div class="slabel">Notes</div><div id="r-notes" style="font-size:12px;color:var(--text2);line-height:1.8"></div></div>
+    <button class="btn btn-out" onclick="goResultBack()">← Modify Inputs</button>
+    <button class="btn btn-gold" onclick="goHome()">New Calculation</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// GLOBALS
+// ═══════════════════════════════════════════════
+let curProduct='';
+let resultBackScreen='';
+let vlEmpType='salaried';
+let hlEmpType='salaried';
+let mlEmpType='salaried';
+let vlAppType='';
+let plSalAcc=true;
+let penType='pensioner';
+
+// ═══════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════
+function goHome(){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s-home').classList.add('active');
+  window.scrollTo(0,0);
+}
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function goResultBack(){goTo(resultBackScreen);}
+
+// ═══════════════════════════════════════════════
+// WELCOME
+// ═══════════════════════════════════════════════
+function selP(p){
+  curProduct=p;
+  document.querySelectorAll('.pc:not(.dis)').forEach(c=>c.classList.remove('sel'));
+  document.getElementById('pc-'+p).classList.add('sel');
+  document.getElementById('btn-go').disabled=false;
+}
+function startProduct(){
+  if(!curProduct) return;
+  resultBackScreen='s-'+curProduct;
+  if(curProduct==='hl'){hlBuildForms();goTo('s-hl');}
+  else if(curProduct==='vl'){goTo('s-vl');}
+  else if(curProduct==='ml'){mlBuildForms();goTo('s-ml');}
+  else if(curProduct==='pl'){goTo('s-pl');}
+}
+
+// ═══════════════════════════════════════════════
+// SUSTENANCE TABLES
+// ═══════════════════════════════════════════════
+// VL: 5-slab (CIBIL-based)
+const SUS_VL=[
+  {max:300000,lo:0.45,hi:0.45},
+  {max:600000,lo:0.35,hi:0.35},
+  {max:1200000,lo:0.30,hi:0.20},
+  {max:1800000,lo:0.25,hi:0.20},
+  {max:Infinity,lo:0.20,hi:0.20},
+];
+// HL / ML / PL: 3-slab
+function susPctHL(annualGross){
+  if(annualGross<=300000) return 0.45;
+  if(annualGross<=1200000) return 0.35;
+  // Above 12L: lower of 25% or ₹2L/month (₹24L/year)
+  return null; // handle separately
+}
+function susAmtHL(annualGross, netAnnual){
+  if(annualGross<=300000) return netAnnual*0.45;
+  if(annualGross<=1200000) return netAnnual*0.35;
+  // Above 12L: lower of 25% of net OR ₹2L/month
+  return Math.min(netAnnual*0.25, 2000000);
+}
+function susLabelHL(annualGross){
+  if(annualGross<=300000) return 'Up to ₹3L — 45%';
+  if(annualGross<=1200000) return '₹3L–₹12L — 35%';
+  return 'Above ₹12L — lower of 25% or ₹2L/mo';
+}
+function susPctVL(annualGross,cibilHi){
+  for(const r of SUS_VL) if(annualGross<=r.max) return cibilHi?r.hi:r.lo;
+  return 0.20;
+}
+function susSlabVL(ag){
+  if(ag<=300000) return 'Up to ₹3L';
+  if(ag<=600000) return '₹3L–₹6L';
+  if(ag<=1200000) return '₹6L–₹12L';
+  if(ag<=1800000) return '₹12L–₹18L';
+  return 'Above ₹18L';
+}
+
+// ═══════════════════════════════════════════════
+// SHARED INCOME FORM BUILDER
+// ═══════════════════════════════════════════════
+function buildIncomeForm(pfx, idx, empType, product){
+  const s='_'+pfx+'_'+idx;
+  const isSal=empType==='salaried';
+  const isComp=empType==='company';
+  const showDOB=(product!=='ml'||true); // ML also shows DOB
+
+  if(isComp) return `
+    <div class="ibox"><div class="ibox-t">Company Income — No Sustenance</div><p>Avg PBT (2 yrs) − Tax + Depreciation. All figures annual.</p></div>
+    <div class="fg"><label>Avg Profit Before Tax — 2 yrs (₹/year) <span class="req">*</span></label>
+    <div class="pfx"><span>₹</span><input type="number" id="pbt${s}" placeholder="Annual avg PBT" min="0"></div></div>
+    <div class="fg"><label>Avg Income Tax — 2 yrs (₹/year)</label>
+    <div class="pfx"><span>₹</span><input type="number" id="tax${s}" placeholder="Avg tax" min="0" value="0"></div></div>
+    <div class="fg"><label>Depreciation Addback (₹/year)</label>
+    <div class="pfx"><span>₹</span><input type="number" id="dep${s}" placeholder="0 if none" min="0" value="0"></div>
+    <div class="hint">Lower of: avg last 3 yrs audited BS OR current year depreciation.</div></div>
+    <div class="fg"><label>EMI Obligations in Company Name (₹/month)</label>
+    <div class="pfx"><span>₹</span><input type="number" id="emi${s}" placeholder="0 if none" min="0" value="0"></div></div>`;
+
+  if(!isSal) return `
+    <div class="fg"><label>Date of Birth <span class="req">*</span></label>
+    <input type="date" id="dob${s}" onchange="checkDOB('${s}','nonsalaried')">
+    <div id="dob-msg${s}" class="hint"></div></div>
+    <div class="fg"><label>Income Source</label>
+    <select id="isrc${s}">
+      <option value="proprietor">Proprietor / Self-employed</option>
+      <option value="partner">Partner — Share of Profit / Remuneration</option>
+      <option value="director">Director Remuneration</option>
+      <option value="professional">Professional (Doctor / CA / Consultant)</option>
+      <option value="other">Other Non-Salaried</option>
+    </select><div class="hint">Income from ITR only — no payslip for non-salaried.</div></div>
+    <div class="fg"><label>(A) Avg Gross Income — 2 yrs ITR (₹/year) <span class="req">*</span></label>
+    <div class="pfx"><span>₹</span><input type="number" id="gross${s}" placeholder="Annual average from ITR" min="0" oninput="liveSus('${s}','ns','${product}')"></div></div>
+    ${product==='hl'?`<div class="fg"><label>Anticipated Rental Income (₹/month) <span class="opt">if applicable</span></label>
+    <div class="pfx"><span>₹</span><input type="number" id="rent${s}" placeholder="Sanctioning authority discretion" min="0" value="0" oninput="liveSus('${s}','ns','${product}')"></div>
+    <div class="hint">Added to gross income as per sanctioning authority discretion (Para 11.4.4).</div></div>`:''}
+    <div class="fg"><label>(B) Avg Income Tax — 2 yrs ITR (₹/year)</label>
+    <div class="pfx"><span>₹</span><input type="number" id="tax${s}" placeholder="Avg tax" min="0" value="0" oninput="liveSus('${s}','ns','${product}')"></div></div>
+    <div id="sus-box${s}" class="ibox" style="display:none"><div class="ibox-t">Sustenance</div><p id="sus-txt${s}"></p></div>
+    <div class="fg"><label>(D) Existing EMI Obligations (₹/month)</label>
+    <div class="pfx"><span>₹</span><input type="number" id="emi${s}" placeholder="0 if none" min="0" value="0"></div></div>
+    <div class="fg"><label>(E) Other Recurring Outgoings (₹/month)</label>
+    <div class="pfx"><span>₹</span><input type="number" id="othr${s}" placeholder="LIC, PF etc." min="0" value="0"></div></div>
+    <div class="fg"><label>Avg ITR Deductions — 2 yrs (₹/year) <span class="opt">optional</span></label>
+    <div class="pfx"><span>₹</span><input type="number" id="itrded${s}" placeholder="Business / 80C deductions avg" min="0" value="0"></div></div>
+    <div class="fg"><label>Depreciation Addback (₹/year) <span class="opt">if applicable</span></label>
+    <div class="pfx"><span>₹</span><input type="number" id="dep${s}" placeholder="0 if none" min="0" value="0"></div>
+    <div class="hint">Lower of: avg last 3 yrs audited BS OR current year depreciation.</div></div>`;
+
+  // SALARIED
+  return `
+    <div class="fg"><label>Date of Birth <span class="req">*</span></label>
+    <input type="date" id="dob${s}" onchange="checkDOB('${s}','salaried')">
+    <div id="dob-msg${s}" class="hint"></div></div>
+    <div class="fg"><label>Employment Category <span class="req">*</span></label>
+    <select id="empcat${s}" onchange="onEmpCat('${s}')">
+      <option value="pvt">Private Salaried</option>
+      <option value="govt">Govt / PSU / Defence</option>
+      <option value="govtpen">Govt with Pension (non-NPS)</option>
+    </select></div>
+    <div class="fg"><label>Age of Retirement (years)</label>
+    <select id="retage${s}" onchange="checkDOB('${s}','salaried')">
+      <option value="58">58</option><option value="59">59</option>
+      <option value="60" selected>60</option><option value="62">62</option><option value="65">65</option>
+    </select><div class="hint" id="ret-hint${s}"></div></div>
+    <div class="fg"><label>(A) Gross Monthly Salary — latest payslip (₹/month) <span class="req">*</span></label>
+    <div class="pfx"><span>₹</span><input type="number" id="gross${s}" placeholder="Monthly gross salary" min="0" oninput="liveSus('${s}','sal','${product}')"></div></div>
+    <div class="fg"><label>Bonus / Incentive — avg 2 yrs Form-16 (₹/year) <span class="opt">if any</span></label>
+    <div class="pfx"><span>₹</span><input type="number" id="bonus${s}" placeholder="Annual average from Form-16" min="0" value="0" oninput="liveSus('${s}','sal','${product}')"></div>
+    <div class="hint">Avg of last 2 yrs Form-16. Bonus, variable pay, incentives, allowances.</div></div>
+    ${product==='hl'?`<div class="fg"><label>Anticipated Rental Income (₹/month) <span class="opt">if applicable</span></label>
+    <div class="pfx"><span>₹</span><input type="number" id="rent${s}" placeholder="Sanctioning authority discretion" min="0" value="0" oninput="liveSus('${s}','sal','${product}')"></div>
+    <div class="hint">Added to gross income as per sanctioning authority discretion (Para 11.4.4).</div></div>`:''}
+    <div class="fg"><label>(B) Income Tax Deduction (₹/month)</label>
+    <div class="pfx"><span>₹</span><input type="number" id="tax${s}" placeholder="TDS per month" min="0" value="0" oninput="liveSus('${s}','sal','${product}')"></div></div>
+    <div id="sus-box${s}" class="ibox" style="display:none"><div class="ibox-t">Sustenance</div><p id="sus-txt${s}"></p></div>
+    <div class="fg"><label>(D) Existing EMI Obligations (₹/month)</label>
+    <div class="pfx"><span>₹</span><input type="number" id="emi${s}" placeholder="0 if none" min="0" value="0"></div></div>
+    <div class="fg"><label>(E) Other Recurring Outgoings (₹/month)</label>
+    <div class="pfx"><span>₹</span><input type="number" id="othr${s}" placeholder="LIC, PF etc." min="0" value="0"></div></div>
+    <div id="pension-wrap${s}" style="display:none">
+      <div class="dvd"></div>
+      <div class="ibox"><div class="ibox-t">Income Beyond Retirement (Para 13.3)</div>
+      <p>Pension considered for Govt employees (non-NPS only). Gross pension ≤ 50% of current gross salary.</p></div>
+      <div class="fg"><label>Expected Monthly Pension (₹/month)</label>
+      <div class="pfx"><span>₹</span><input type="number" id="pension${s}" placeholder="Gross pension" min="0" value="0" oninput="valPension('${s}')"></div>
+      <div id="pen-hint${s}" class="hint"></div></div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════
+// LIVE SUSTENANCE DISPLAY
+// ═══════════════════════════════════════════════
+function liveSus(s, mode, product){
+  const grossEl=document.getElementById('gross'+s);
+  const taxEl=document.getElementById('tax'+s);
+  const boxEl=document.getElementById('sus-box'+s);
+  const txtEl=document.getElementById('sus-txt'+s);
+  if(!grossEl||!boxEl) return;
+  const grossRaw=parseFloat(grossEl.value)||0;
+  if(grossRaw<=0){boxEl.style.display='none';return;}
+  const taxRaw=parseFloat(taxEl?taxEl.value:0)||0;
+  const bonusEl=document.getElementById('bonus'+s);
+  const bonusAnnual=parseFloat(bonusEl?bonusEl.value:0)||0;
+  const rentEl=document.getElementById('rent'+s);
+  const rentAnnual=(parseFloat(rentEl?rentEl.value:0)||0)*12;
+  const annualGross=(mode==='sal'?grossRaw*12:grossRaw)+bonusAnnual+rentAnnual;
+  const annualTax=mode==='sal'?taxRaw*12:taxRaw;
+  const netC=annualGross-annualTax;
+  let susAmt, susLabel;
+  if(product==='vl'){
+    const cHi=document.getElementById('vl-cibil')?document.getElementById('vl-cibil').value==='hi':true;
+    const pct=susPctVL(annualGross,cHi);
+    susAmt=netC*pct;
+    susLabel=susSlabVL(annualGross)+' → '+(pct*100).toFixed(0)+'%';
+  } else {
+    susAmt=susAmtHL(annualGross,netC);
+    susLabel=susLabelHL(annualGross);
+  }
+  boxEl.style.display='block';
+  txtEl.textContent=`Slab: ${susLabel} on Net Income ₹${fmt(netC/12)}/mo = Sustenance ₹${fmt(susAmt/12)}/mo`;
+}
+
+// ═══════════════════════════════════════════════
+// DOB / AGE HELPERS
+// ═══════════════════════════════════════════════
+function getAge(s){
+  const el=document.getElementById('dob'+s);
+  if(!el||!el.value) return null;
+  const d=new Date(el.value),t=new Date();
+  let a=t.getFullYear()-d.getFullYear();
+  const m=t.getMonth()-d.getMonth();
+  if(m<0||(m===0&&t.getDate()<d.getDate())) a--;
+  return a;
+}
+function checkDOB(s, empMode){
+  const age=getAge(s);
+  const msgEl=document.getElementById('dob-msg'+s);
+  if(!msgEl||age===null) return;
+  const exitAge=empMode==='salaried'?getExitAgeSal(s):75;
+  if(age<18){msgEl.className='hint w';msgEl.textContent='⚠️ Minimum entry age is 18 years.';}
+  else if(age>=exitAge){msgEl.className='hint w';msgEl.textContent=`⚠️ Applicant has crossed exit age of ${exitAge} years.`;}
+  else{msgEl.className='hint ok';msgEl.textContent=`Age: ${age} yrs · Exit age: ${exitAge} yrs · ${exitAge-age} yrs remaining`;}
+  const rh=document.getElementById('ret-hint'+s);
+  if(rh){
+    const retEl=document.getElementById('retage'+s);
+    const retAge=retEl?parseInt(retEl.value):60;
+    const mtr=Math.max(0,(retAge-age)*12);
+    rh.textContent=`Months to retirement at ${retAge}: ${mtr} months`;
+  }
+}
+function getExitAgeSal(s){
+  const el=document.getElementById('empcat'+s);
+  if(!el) return 60;
+  if(el.value==='govtpen') return 75;
+  return 60;
+}
+function onEmpCat(s){
+  const cat=document.getElementById('empcat'+s).value;
+  const pw=document.getElementById('pension-wrap'+s);
+  if(pw) pw.style.display=cat==='govtpen'?'block':'none';
+  checkDOB(s,'salaried');
+}
+function valPension(s){
+  const grossEl=document.getElementById('gross'+s);
+  const penEl=document.getElementById('pension'+s);
+  const hEl=document.getElementById('pen-hint'+s);
+  if(!grossEl||!penEl||!hEl) return;
+  const gross=parseFloat(grossEl.value)||0;
+  const pen=parseFloat(penEl.value)||0;
+  const cap=gross*0.5;
+  if(pen>cap){hEl.className='hint w';hEl.textContent=`⚠️ Exceeds 50% cap. Will be capped at ₹${fmt(cap)}/mo.`;}
+  else if(pen>0){hEl.className='hint ok';hEl.textContent=`✓ Within 50% cap (max ₹${fmt(cap)}/mo).`;}
+  else hEl.textContent='';
+}
+function getMaxTenure(s, empMode, maxProduct){
+  const age=getAge(s);
+  if(age===null) return maxProduct;
+  const exitAge=empMode==='salaried'?getExitAgeSal(s):75;
+  return Math.min(maxProduct, Math.max(0,(exitAge-age)*12));
+}
+
+// ═══════════════════════════════════════════════
+// LOAN MATH
+// ═══════════════════════════════════════════════
+function loanAmt(emi, roiAnnual, months){
+  if(months<=0||emi<=0) return 0;
+  if(roiAnnual<=0) return emi*months;
+  const r=roiAnnual/100/12;
+  return emi*(1-Math.pow(1+r,-months))/r;
+}
+function calcEMI(principal, roiAnnual, months){
+  if(months<=0||principal<=0) return 0;
+  if(roiAnnual<=0) return principal/months;
+  const r=roiAnnual/100/12;
+  return principal*r*Math.pow(1+r,months)/(Math.pow(1+r,months)-1);
+}
+
+// ═══════════════════════════════════════════════
+// COLLECT APPLICANT DATA (shared by HL, VL, ML)
+// ═══════════════════════════════════════════════
+function collectApplicant(pfx, idx, empType, product){
+  const s='_'+pfx+'_'+idx;
+  const isSal=empType==='salaried';
+  const isComp=empType==='company';
+  if(isComp){
+    const pbt=parseFloat(document.getElementById('pbt'+s)?document.getElementById('pbt'+s).value:0)||0;
+    const tax=parseFloat(document.getElementById('tax'+s)?document.getElementById('tax'+s).value:0)||0;
+    const dep=parseFloat(document.getElementById('dep'+s)?document.getElementById('dep'+s).value:0)||0;
+    const emiM=parseFloat(document.getElementById('emi'+s)?document.getElementById('emi'+s).value:0)||0;
+    return {isComp,grossAnnual:pbt,taxAnnual:tax,dep,emiM,othrM:0,bonusAnnual:0,rentAnnual:0,itrded:0,pensionM:0,empcat:'company'};
+  }
+  const grossRaw=parseFloat(document.getElementById('gross'+s)?document.getElementById('gross'+s).value:0)||0;
+  const taxRaw=parseFloat(document.getElementById('tax'+s)?document.getElementById('tax'+s).value:0)||0;
+  const bonusAnnual=parseFloat(document.getElementById('bonus'+s)?document.getElementById('bonus'+s).value:0)||0;
+  const rentM=parseFloat(document.getElementById('rent'+s)?document.getElementById('rent'+s).value:0)||0;
+  const rentAnnual=rentM*12;
+  const emiM=parseFloat(document.getElementById('emi'+s)?document.getElementById('emi'+s).value:0)||0;
+  const othrM=parseFloat(document.getElementById('othr'+s)?document.getElementById('othr'+s).value:0)||0;
+  const dep=parseFloat(document.getElementById('dep'+s)?document.getElementById('dep'+s).value:0)||0;
+  const itrded=parseFloat(document.getElementById('itrded'+s)?document.getElementById('itrded'+s).value:0)||0;
+  const grossAnnual=(isSal?grossRaw*12:grossRaw)+bonusAnnual+rentAnnual;
+  const taxAnnual=isSal?taxRaw*12:taxRaw;
+  const empcat=document.getElementById('empcat'+s)?document.getElementById('empcat'+s).value:'';
+  let pensionM=0;
+  if(isSal&&empcat==='govtpen'){
+    const penRaw=parseFloat(document.getElementById('pension'+s)?document.getElementById('pension'+s).value:0)||0;
+    pensionM=Math.min(penRaw,grossRaw*0.5);
+  }
+  const age=getAge(s);
+  const retEl=document.getElementById('retage'+s);
+  const retAge=retEl?parseInt(retEl.value):60;
+  const mthsToRet=age!==null?Math.max(0,(retAge-age)*12):null;
+  return {isSal,grossAnnual,taxAnnual,bonusAnnual,rentAnnual,dep,itrded,emiM,othrM,pensionM,empcat,mthsToRet,age,retAge};
+}
+
+// ═══════════════════════════════════════════════
+// CALCULATE SINGLE APPLICANT ELIGIBLE EMI
+// ═══════════════════════════════════════════════
+function calcEligibleH(d, product, cibilHi){
+  if(d.isComp){
+    const pat=d.grossAnnual-d.taxAnnual;
+    const ca=pat+d.dep;
+    const G=ca-d.emiM*12;
+    return {H:Math.max(0,G/12), breakdown:[
+      {l:'(A) Avg PBT — 2 yrs',v:'₹'+fmt(d.grossAnnual)+'/yr'},
+      {l:'(B) Income Tax',v:'-₹'+fmt(d.taxAnnual)+'/yr',c:'r'},
+      {l:'PAT',v:'₹'+fmt(pat)+'/yr'},
+      {l:'(+) Depreciation',v:'+₹'+fmt(d.dep)+'/yr'},
+      {l:'Cash Accrual',v:'₹'+fmt(pat+d.dep)+'/yr'},
+      {l:'(D) EMI Obligations',v:'-₹'+fmt(d.emiM*12)+'/yr',c:'r'},
+      {l:'(G) Eligible Annual',v:'₹'+fmt(G)+'/yr',c:'b'},
+      {l:'(H) Eligible Monthly EMI',v:'₹'+fmt(Math.max(0,G/12))+'/mo',c:'g'},
+    ]};
+  }
+  let susAmt;
+  if(product==='vl'){
+    const pct=susPctVL(d.grossAnnual,cibilHi);
+    susAmt=(d.grossAnnual-d.taxAnnual)*pct;
+  } else {
+    susAmt=susAmtHL(d.grossAnnual,d.grossAnnual-d.taxAnnual);
+  }
+  const netC=d.grossAnnual-d.taxAnnual;
+  const outAnnual=(d.emiM+d.othrM)*12;
+  const G=netC-susAmt-outAnnual-d.itrded+d.dep;
+  const H=Math.max(0,G/12);
+  const susLabel=product==='vl'?`${(susPctVL(d.grossAnnual,cibilHi)*100).toFixed(0)}% (${susSlabVL(d.grossAnnual)})`:susLabelHL(d.grossAnnual);
+  const bd=[
+    {l:'(A) Gross Annual Income'+(d.rentAnnual>0?` (incl. ₹${fmt(d.rentAnnual/12)}/mo rent)`:''+(d.bonusAnnual>0?` + ₹${fmt(d.bonusAnnual)} bonus`:'')),v:'₹'+fmt(d.grossAnnual)+'/yr'},
+    {l:'(B) Income Tax',v:'-₹'+fmt(d.taxAnnual)+'/yr',c:'r'},
+    {l:'(C) Net Income (A−B)',v:'₹'+fmt(netC)+'/yr'},
+    {l:`(F) Sustenance — ${susLabel}`,v:'-₹'+fmt(susAmt)+'/yr',c:'r'},
+    {l:'(D) EMI Obligations',v:'-₹'+fmt(d.emiM*12)+'/yr',c:'r'},
+  ];
+  if(d.othrM>0) bd.push({l:'(E) Other Outgoings',v:'-₹'+fmt(d.othrM*12)+'/yr',c:'r'});
+  if(d.dep>0) bd.push({l:'(+) Depreciation Addback',v:'+₹'+fmt(d.dep)+'/yr'});
+  if(d.itrded>0) bd.push({l:'ITR Deductions',v:'-₹'+fmt(d.itrded)+'/yr',c:'r'});
+  bd.push({l:'(G) Max Annual Surplus [C−(D+E+F)]',v:'₹'+fmt(G)+'/yr',c:'b'});
+  bd.push({l:'(H) Max Eligible Monthly EMI (G÷12)',v:'₹'+fmt(H)+'/mo',c:'g'});
+  return {H,breakdown:bd};
+}
+
+// ═══════════════════════════════════════════════
+// SHOW RESULT
+// ═══════════════════════════════════════════════
+function showResult(loan, emi, tenureMonths, roiAnnual, breakdown, notes, productLabel, moratorium){
+  const mora=moratorium||0;
+  const effectiveTenure=tenureMonths-mora;
+  const totalPayable=emi*effectiveTenure + (mora>0?(loan*(roiAnnual/100/12)*mora):0);
+  const totalInt=totalPayable-loan;
+  document.getElementById('r-amt').textContent='₹'+fmt(loan);
+  document.getElementById('r-sub').textContent=`At ${roiAnnual}% p.a. · ${tenureMonths} months`+(mora>0?` (${mora} mo moratorium)`:'');
+  document.getElementById('r-emi').textContent='₹'+fmt(emi);
+  document.getElementById('r-tenure').textContent=effectiveTenure+' months'+(mora>0?` + ${mora} mo interest`:' EMI');
+  document.getElementById('r-int').textContent='₹'+fmt(Math.max(0,totalInt));
+  document.getElementById('r-total').textContent='₹'+fmt(Math.max(0,totalPayable));
+  document.getElementById('res-product-label').textContent=productLabel;
+  const bEl=document.getElementById('r-breakdown');
+  bEl.innerHTML='';
+  breakdown.forEach(row=>{
+    if(row.sep){bEl.innerHTML+='<div class="bsep"></div>';return;}
+    if(row.para){bEl.innerHTML+=`<div class="plbl">${row.para}</div>`;return;}
+    if(!row.l) return;
+    const d=document.createElement('div');d.className='brow';
+    d.innerHTML=`<span class="bl">${row.l}</span><span class="bv ${row.c||''}">${row.v}</span>`;
+    bEl.appendChild(d);
+  });
+  const nc=document.getElementById('r-notes-card');
+  nc.style.display=notes.length?'block':'none';
+  document.getElementById('r-notes').innerHTML=notes.map(n=>'• '+n).join('<br>');
+  goTo('s-result');
+}
+
+// ═══════════════════════════════════════════════
+// HOME LOAN
+// ═══════════════════════════════════════════════
+function onHLPurpose(){
+  const p=document.getElementById('hl-purpose').value;
+  document.getElementById('hl-repair-note').style.display=(p==='repair')?'block':'none';
+  hlBuildForms();
+}
+function setHLEmp(t){
+  hlEmpType=t;
+  document.getElementById('hl-tsal').classList.toggle('on',t==='salaried');
+  document.getElementById('hl-tnsal').classList.toggle('on',t==='nonsalaried');
+  hlBuildForms();
+}
+function setMLEmp(t){
+  mlEmpType=t;
+  document.getElementById('ml-tsal').classList.toggle('on',t==='salaried');
+  document.getElementById('ml-tnsal').classList.toggle('on',t==='nonsalaried');
+  mlBuildForms();
+}
+function onHLCibil(){
+  document.getElementById('hl-cibil-warn').style.display=document.getElementById('hl-cibil').value==='lo'?'block':'none';
+}
+function onHLTenure(){
+  const purpose=document.getElementById('hl-purpose').value;
+  const maxT=purpose==='repair'?180:360;
+  const v=parseInt(document.getElementById('hl-tenure').value)||0;
+  const h=document.getElementById('hl-tenure-hint');
+  if(v>maxT){h.className='hint w';h.textContent=`⚠️ Max tenure for this purpose: ${maxT} months.`;}
+  else if(v>0){h.className='hint ok';h.textContent=`✓ Within permitted tenure of ${maxT} months.`;}
+  else h.textContent='';
+}
+function onHLMora(){
+  const mora=parseInt(document.getElementById('hl-mora').value)||0;
+  const tenure=parseInt(document.getElementById('hl-tenure').value)||0;
+  const h=document.getElementById('hl-mora-hint');
+  if(mora>0&&tenure>0){
+    h.textContent=`Moratorium: ${mora} months interest only · EMI tenure: ${tenure-mora} months`;
+  } else {
+    h.textContent='During moratorium, only interest is paid. EMI calculated on remaining tenure.';
+  }
+}
+function hlBuildForms(){
+  const n=parseInt(document.getElementById('hl-ncoapp').value)||0;
+  window['_empMap_hl']={};
+  document.getElementById('hl-income-card').style.display='block';
+  document.getElementById('hl-terms-card').style.display='block';
+  document.getElementById('hl-calc-btn').style.display='block';
+  setSteps('hl',2);
+  buildGenericForms('hl', n, hlEmpType, 'hl');
+  document.getElementById('hl-combsus-wrap').style.display=n>0?'block':'none';
+}
+function calcHL(){
+  setSteps('hl',3);
+  const roi=parseFloat(document.getElementById('hl-roi').value)||0;
+  const tenureInput=parseInt(document.getElementById('hl-tenure').value)||0;
+  const mora=parseInt(document.getElementById('hl-mora').value)||0;
+  const purpose=document.getElementById('hl-purpose').value;
+  const cibilHi=document.getElementById('hl-cibil').value==='hi';
+  if(!roi||!tenureInput){alert('Please enter ROI and Tenure.');return;}
+  const maxT=purpose==='repair'?180:360;
+  const maxLoanCap=purpose==='repair'?3000000:Infinity;
+  const effectiveTenure=Math.min(tenureInput,maxT)-mora;
+  if(effectiveTenure<=0){alert('Effective tenure (after moratorium) must be positive.');return;}
+  const n=parseInt(document.getElementById('hl-ncoapp').value)||0;
+  const numForms=1+n;
+  const combSus=n>0&&document.getElementById('hl-combsus')&&document.getElementById('hl-combsus').checked;
+  const notes=[];
+  let totalLoan=0, totalEMI=0, breakdown=[];
+  const allData=[];
+  for(let i=0;i<numForms;i++){
+    const tabEmp=(window['_empMap_hl']&&window['_empMap_hl'][i])||hlEmpType;
+    allData.push(collectApplicant('hl',i,tabEmp,'hl'));
+  }
+
+  if(combSus){
+    const cGross=allData.reduce((a,d)=>a+d.grossAnnual,0);
+    const cTax=allData.reduce((a,d)=>a+d.taxAnnual,0);
+    const cNetC=cGross-cTax;
+    const cSus=susAmtHL(cGross,cNetC);
+    const cEMI=allData.reduce((a,d)=>a+d.emiM,0);
+    const cOthr=allData.reduce((a,d)=>a+d.othrM,0);
+    const cDep=allData.reduce((a,d)=>a+d.dep,0);
+    const G=cNetC-cSus-(cEMI+cOthr)*12+cDep;
+    const H=Math.max(0,G/12);
+    totalLoan=loanAmt(H,roi,effectiveTenure);
+    totalEMI=H;
+    breakdown=[
+      {l:'Combined Gross Income (A)',v:'₹'+fmt(cGross)+'/yr'},
+      {l:'Less: Combined Tax (B)',v:'-₹'+fmt(cTax)+'/yr',c:'r'},
+      {l:'Net Income C',v:'₹'+fmt(cNetC)+'/yr'},
+      {l:`Sustenance F — ${susLabelHL(cGross)}`,v:'-₹'+fmt(cSus)+'/yr',c:'r'},
+      {l:'Less: EMI Obligations D',v:'-₹'+fmt(cEMI*12)+'/yr',c:'r'},
+      {l:'Less: Other Outgoings E',v:'-₹'+fmt(cOthr*12)+'/yr',c:'r'},
+      {l:'(+) Depreciation',v:'+₹'+fmt(cDep)+'/yr'},
+      {l:'(G) Max Annual Surplus',v:'₹'+fmt(G)+'/yr',c:'b'},
+      {l:'(H) Max Eligible Monthly EMI',v:'₹'+fmt(H)+'/mo',c:'g'},
+    ];
+    if(mora>0) breakdown.push({l:`Moratorium: ${mora} months interest only`,v:`Monthly interest = ₹${fmt(totalLoan*roi/100/12)}`});
+    breakdown.push({l:`Eligible Loan (EMI tenure: ${effectiveTenure} mo)`,v:'₹'+fmt(totalLoan),c:'g'});
+  } else {
+    allData.forEach((d,idx)=>{
+      const lbl=idx===0?'Applicant':`Co-App ${idx}`;
+      const {H,breakdown:bd}=calcEligibleH(d,'hl',cibilHi);
+      const appMaxT=d.age!==null?Math.min(effectiveTenure,Math.max(0,(75-d.age)*12-mora)):effectiveTenure;
+      if(idx>0) breakdown.push({sep:true});
+      breakdown.push({para:`[ ${lbl} ]`});
+      breakdown.push(...bd);
+
+      // Para 13.3 — pension beyond retirement
+      if(d.isSal&&d.empcat==='govtpen'&&d.pensionM>0&&d.mthsToRet!==null&&d.mthsToRet<appMaxT){
+        const penAnnual=d.pensionM*12;
+        const penSus=susAmtHL(penAnnual,penAnnual);
+        const penG=penAnnual-penSus-(d.emiM+d.othrM)*12;
+        const penH=Math.max(0,penG/12);
+        const loanLower=loanAmt(penH,roi,appMaxT);
+        const diffH=Math.max(0,H-penH);
+        const loanDiff=loanAmt(diffH,roi,Math.min(d.mthsToRet,appMaxT));
+        const appLoan=loanLower+loanDiff;
+        breakdown.push({sep:true});
+        breakdown.push({para:'Para 13.3 — Beyond Retirement'});
+        breakdown.push({l:'Pre-retirement H',v:'₹'+fmt(H)+'/mo'});
+        breakdown.push({l:'Post-retirement H (pension)',v:'₹'+fmt(penH)+'/mo'});
+        breakdown.push({l:`Loan at lower income × ${appMaxT} mo`,v:'₹'+fmt(loanLower)});
+        breakdown.push({l:`Loan at diff × ${Math.min(d.mthsToRet,appMaxT)} mo`,v:'+₹'+fmt(loanDiff)});
+        breakdown.push({l:`[${lbl}] Eligible Loan`,v:'₹'+fmt(appLoan),c:'g'});
+        totalLoan+=Math.max(0,appLoan); totalEMI+=H;
+      } else {
+        const appLoan=loanAmt(H,roi,appMaxT);
+        if(mora>0) breakdown.push({l:`Moratorium: ${mora} months interest only`,v:`Monthly interest ≈ ₹${fmt(appLoan*roi/100/12)}`});
+        breakdown.push({l:`[${lbl}] Eligible Loan (${appMaxT} mo)`,v:'₹'+fmt(appLoan),c:'g'});
+        totalLoan+=Math.max(0,appLoan); totalEMI+=H;
+        if(appMaxT<effectiveTenure) notes.push(`${lbl}: tenure capped at ${appMaxT} months due to age.`);
+      }
+    });
+    if(numForms>1){breakdown.push({sep:true});breakdown.push({l:'Total Eligible Loan',v:'₹'+fmt(totalLoan),c:'g'});}
+  }
+  if(totalLoan>maxLoanCap){notes.push(`Loan capped at ₹${fmt(maxLoanCap)} (repair/renovation limit).`);totalLoan=maxLoanCap;}
+  notes.push('Eligibility is indicative. Subject to LTV norms, credit appraisal and sanctioning authority.');
+  resultBackScreen='s-hl';
+  showResult(totalLoan,totalEMI,tenureInput,roi,breakdown,notes,'Home Loan · Retail Assets',mora);
+}
+
+// ═══════════════════════════════════════════════
+// VEHICLE LOAN
+// ═══════════════════════════════════════════════
+function onVLAppType(){
+  vlAppType=document.getElementById('vl-apptype').value;
+  document.getElementById('vl-ind-extra').style.display=vlAppType==='individual'?'block':'none';
+  document.getElementById('vl-nonind-extra').style.display=(vlAppType&&vlAppType!=='individual')?'block':'none';
+  const n=document.getElementById('vl-nonind-note');
+  if(vlAppType==='proprietary') n.innerHTML='<div class="ibox-t">Note</div><p>Promoter / Sole Proprietor is mandatory co-applicant. Income: avg 2 yrs ITR (non-salaried).</p>';
+  else if(vlAppType==='partnership') n.innerHTML='<div class="ibox-t">Note</div><p>All partners as guarantors. Firm income: avg 2 yrs ITR. Sustenance on firm income.</p>';
+  else if(vlAppType==='company') n.innerHTML='<div class="ibox-t">Note</div><p>MD as co-applicant / guarantor. No sustenance. Income: Avg PBT − Tax + Depreciation.</p>';
+  vlBuildForms();
+}
+function setVLEmp(t){
+  vlEmpType=t;
+  document.getElementById('vl-tsal').classList.toggle('on',t==='salaried');
+  document.getElementById('vl-tnsal').classList.toggle('on',t==='nonsalaried');
+  vlBuildForms();
+}
+function getVLVtype(){
+  if(vlAppType==='individual') return document.getElementById('vl-vtype').value;
+  return document.getElementById('vl-vtype-ni')?document.getElementById('vl-vtype-ni').value:'';
+}
+function vlMaxTenure(vt){if(vt==='old4w') return 60;if(vt==='new2w') return 36;return 84;}
+function onVLCibil(){document.getElementById('vl-cibil-warn').style.display=document.getElementById('vl-cibil').value==='lo'?'block':'none';}
+function onVLTenure(){
+  const vt=getVLVtype();
+  const maxT=vlMaxTenure(vt);
+  const v=parseInt(document.getElementById('vl-tenure').value)||0;
+  const h=document.getElementById('vl-tenure-hint');
+  if(v>maxT){h.className='hint w';h.textContent=`⚠️ Max tenure: ${maxT} months for this vehicle type.`;}
+  else if(v>0){h.className='hint ok';h.textContent=`✓ Within ${maxT} months.`;}
+}
+function vlBuildForms(){
+  if(!vlAppType) return;
+  document.getElementById('vl-income-card').style.display='block';
+  document.getElementById('vl-terms-card').style.display='block';
+  document.getElementById('vl-calc-btn').style.display='block';
+  setSteps('vl',2);
+  let empT=vlEmpType, nCoapp=0;
+  if(vlAppType==='individual'){
+    nCoapp=parseInt(document.getElementById('vl-ncoapp').value)||0;
+  } else if(vlAppType==='company'){empT='company';}
+  else empT='nonsalaried';
+  buildGenericForms('vl',nCoapp,empT,'vl');
+  document.getElementById('vl-combsus-wrap').style.display=(vlAppType==='individual'&&nCoapp>0)?'block':'none';
+}
+function calcVL(){
+  setSteps('vl',3);
+  const roi=parseFloat(document.getElementById('vl-roi').value)||0;
+  const tenureInput=parseInt(document.getElementById('vl-tenure').value)||0;
+  const cibilHi=document.getElementById('vl-cibil').value==='hi';
+  if(!roi||!tenureInput){alert('Please enter ROI and Tenure.');return;}
+  const vt=getVLVtype();
+  const maxVT=vlMaxTenure(vt);
+  const nCoapp=vlAppType==='individual'?parseInt(document.getElementById('vl-ncoapp').value)||0:0;
+  const numForms=1+nCoapp;
+  const combSus=vlAppType==='individual'&&nCoapp>0&&document.getElementById('vl-combsus')&&document.getElementById('vl-combsus').checked;
+  const empT=vlAppType==='company'?'company':vlAppType!=='individual'?'nonsalaried':vlEmpType;
+  const notes=[];
+  let totalLoan=0,totalEMI=0,breakdown=[];
+  const allData=[];
+  for(let i=0;i<numForms;i++) allData.push(collectApplicant('vl',i,empT,'vl'));
+
+  if(vlAppType==='company'){
+    const d=allData[0];
+    const pat=d.grossAnnual-d.taxAnnual;
+    const ca=pat+d.dep;
+    const G=ca-d.emiM*12;
+    const H=Math.max(0,G/12);
+    const n=Math.min(tenureInput,maxVT);
+    totalLoan=loanAmt(H,roi,n);totalEMI=H;
+    breakdown=[
+      {l:'(A) Avg PBT',v:'₹'+fmt(d.grossAnnual)+'/yr'},{l:'(B) Tax',v:'-₹'+fmt(d.taxAnnual)+'/yr',c:'r'},
+      {l:'PAT',v:'₹'+fmt(pat)+'/yr'},{l:'(+) Depreciation',v:'+₹'+fmt(d.dep)+'/yr'},
+      {l:'Cash Accrual',v:'₹'+fmt(ca)+'/yr'},{l:'(D) EMI Obligations',v:'-₹'+fmt(d.emiM*12)+'/yr',c:'r'},
+      {l:'(G) Eligible Annual',v:'₹'+fmt(G)+'/yr',c:'b'},{l:'(H) Max Monthly EMI',v:'₹'+fmt(H)+'/mo',c:'g'},
+      {l:`Eligible Loan (${n} mo)`,v:'₹'+fmt(totalLoan),c:'g'},
+    ];
+    notes.push('No sustenance for company.');
+  } else if(combSus){
+    const cGross=allData.reduce((a,d)=>a+d.grossAnnual,0);
+    const cTax=allData.reduce((a,d)=>a+d.taxAnnual,0);
+    const cNetC=cGross-cTax;
+    const pct=susPctVL(cGross,cibilHi);
+    const cSus=cNetC*pct;
+    const cEMI=allData.reduce((a,d)=>a+d.emiM,0);
+    const cOthr=allData.reduce((a,d)=>a+d.othrM,0);
+    const cDep=allData.reduce((a,d)=>a+d.dep,0);
+    const G=cNetC-cSus-(cEMI+cOthr)*12+cDep;
+    const H=Math.max(0,G/12);
+    const minT=allData.reduce((a,d)=>{
+      if(d.age===null) return Math.min(a,Math.min(tenureInput,maxVT));
+      return Math.min(a,Math.min(tenureInput,maxVT,Math.max(0,(75-d.age)*12)));
+    },Math.min(tenureInput,maxVT));
+    totalLoan=loanAmt(H,roi,minT);totalEMI=H;
+    breakdown=[
+      {l:'Combined Gross (A)',v:'₹'+fmt(cGross)+'/yr'},{l:'Tax (B)',v:'-₹'+fmt(cTax)+'/yr',c:'r'},
+      {l:'Net C',v:'₹'+fmt(cNetC)+'/yr'},{l:`Sustenance F (${(pct*100).toFixed(0)}%)`,v:'-₹'+fmt(cSus)+'/yr',c:'r'},
+      {l:'EMIs D',v:'-₹'+fmt(cEMI*12)+'/yr',c:'r'},{l:'Other E',v:'-₹'+fmt(cOthr*12)+'/yr',c:'r'},
+      {l:'(+) Dep',v:'+₹'+fmt(cDep)+'/yr'},{l:'(G) Surplus',v:'₹'+fmt(G)+'/yr',c:'b'},
+      {l:'(H) Monthly EMI',v:'₹'+fmt(H)+'/mo',c:'g'},{l:`Eligible Loan (${minT} mo)`,v:'₹'+fmt(totalLoan),c:'g'},
+    ];
+  } else {
+    allData.forEach((d,idx)=>{
+      const lbl=idx===0?'Applicant':`Co-App ${idx}`;
+      const {H,breakdown:bd}=calcEligibleH(d,'vl',cibilHi);
+      const appT=d.age!==null?Math.min(tenureInput,maxVT,Math.max(0,(75-d.age)*12)):Math.min(tenureInput,maxVT);
+
+      if(idx>0) breakdown.push({sep:true});
+      breakdown.push({para:`[ ${lbl} ]`});
+      breakdown.push(...bd);
+
+      if(d.isSal&&d.empcat==='govtpen'&&d.pensionM>0&&d.mthsToRet!==null&&d.mthsToRet<appT){
+        const penAnnual=d.pensionM*12;
+        const penSus=penAnnual*susPctVL(penAnnual,cibilHi);
+        const penG=penAnnual-penSus-(d.emiM+d.othrM)*12;
+        const penH=Math.max(0,penG/12);
+        const loanL=loanAmt(penH,roi,appT);
+        const diffH=Math.max(0,H-penH);
+        const loanD=loanAmt(diffH,roi,Math.min(d.mthsToRet,appT));
+        const appL=loanL+loanD;
+        breakdown.push({sep:true});
+        breakdown.push({para:'Para 13.3'});
+        breakdown.push({l:'Pre-ret H',v:'₹'+fmt(H)+'/mo'},{l:'Post-ret H',v:'₹'+fmt(penH)+'/mo'});
+        breakdown.push({l:'Loan at lower × '+appT+' mo',v:'₹'+fmt(loanL)},{l:'Loan at diff × '+Math.min(d.mthsToRet,appT)+' mo',v:'+₹'+fmt(loanD)});
+        breakdown.push({l:`[${lbl}] Eligible Loan`,v:'₹'+fmt(appL),c:'g'});
+        totalLoan+=Math.max(0,appL);totalEMI+=H;
+      } else {
+        const appL=loanAmt(H,roi,appT);
+        breakdown.push({l:`[${lbl}] Eligible Loan (${appT} mo)`,v:'₹'+fmt(appL),c:'g'});
+        totalLoan+=Math.max(0,appL);totalEMI+=H;
+        if(appT<Math.min(tenureInput,maxVT)) notes.push(`${lbl}: tenure capped at ${appT} months.`);
+      }
+    });
+    if(numForms>1){breakdown.push({sep:true});breakdown.push({l:'Total Eligible Loan',v:'₹'+fmt(totalLoan),c:'g'});}
+  }
+  let maxLoanCap=Infinity;
+  if(vt==='new2w') maxLoanCap=1000000;
+  if(vt==='old4w') maxLoanCap=2000000;
+  if(totalLoan>maxLoanCap){notes.push(`Capped at ₹${fmt(maxLoanCap)} (product limit).`);totalLoan=maxLoanCap;}
+  if(!cibilHi) notes.push('CIBIL below 700: Third-party guarantee required.');
+  notes.push('Eligibility is indicative. Subject to credit appraisal.');
+  resultBackScreen='s-vl';
+  showResult(totalLoan,totalEMI,Math.min(tenureInput,maxVT),roi,breakdown,notes,'Vehicle Loan · Retail Assets');
+}
+
+// ═══════════════════════════════════════════════
+// MORTGAGE LOAN
+// ═══════════════════════════════════════════════
+function onMLCibil(){document.getElementById('ml-cibil-warn').style.display=document.getElementById('ml-cibil').value==='lo'?'block':'none';}
+function onMLTenure(){
+  const v=parseInt(document.getElementById('ml-tenure').value)||0;
+  const h=document.getElementById('ml-tenure-hint');
+  if(v>180){h.className='hint w';h.textContent='⚠️ Max tenure: 180 months (15 years).';}
+  else if(v>0){h.className='hint ok';h.textContent='✓ Within 180 months.';}
+}
+function mlBuildForms(){
+  const n=parseInt(document.getElementById('ml-ncoapp').value)||0;
+  window['_empMap_ml']={};
+  document.getElementById('ml-income-card').style.display='block';
+  document.getElementById('ml-terms-card').style.display='block';
+  document.getElementById('ml-calc-btn').style.display='block';
+  setSteps('ml',2);
+  buildGenericForms('ml',n,mlEmpType,'ml');
+  document.getElementById('ml-combsus-wrap').style.display=n>0?'block':'none';
+}
+function calcML(){
+  setSteps('ml',3);
+  const roi=parseFloat(document.getElementById('ml-roi').value)||0;
+  const tenureInput=parseInt(document.getElementById('ml-tenure').value)||0;
+  const cibilHi=document.getElementById('ml-cibil').value==='hi';
+  if(!roi||!tenureInput){alert('Please enter ROI and Tenure.');return;}
+  const maxT=180;
+  const n=parseInt(document.getElementById('ml-ncoapp').value)||0;
+  const numForms=1+n;
+  const combSus=n>0&&document.getElementById('ml-combsus')&&document.getElementById('ml-combsus').checked;
+  const notes=[];
+  let totalLoan=0,totalEMI=0,breakdown=[];
+  const allData=[];
+  for(let i=0;i<numForms;i++){
+    const tabEmp=(window['_empMap_ml']&&window['_empMap_ml'][i])||mlEmpType;
+    allData.push(collectApplicant('ml',i,tabEmp,'ml'));
+  }
+
+  if(combSus){
+    const cGross=allData.reduce((a,d)=>a+d.grossAnnual,0);
+    const cTax=allData.reduce((a,d)=>a+d.taxAnnual,0);
+    const cNetC=cGross-cTax;
+    const cSus=susAmtHL(cGross,cNetC);
+    const cEMI=allData.reduce((a,d)=>a+d.emiM,0);
+    const cOthr=allData.reduce((a,d)=>a+d.othrM,0);
+    const G=cNetC-cSus-(cEMI+cOthr)*12;
+    const H=Math.max(0,G/12);
+    const minT=allData.reduce((a,d)=>d.age!==null?Math.min(a,Math.min(tenureInput,maxT,Math.max(0,(75-d.age)*12))):Math.min(a,Math.min(tenureInput,maxT)),Math.min(tenureInput,maxT));
+    totalLoan=loanAmt(H,roi,minT);totalEMI=H;
+    breakdown=[
+      {l:'Combined Gross (A)',v:'₹'+fmt(cGross)+'/yr'},{l:'Tax (B)',v:'-₹'+fmt(cTax)+'/yr',c:'r'},
+      {l:'Net C',v:'₹'+fmt(cNetC)+'/yr'},{l:`Sustenance F — ${susLabelHL(cGross)}`,v:'-₹'+fmt(cSus)+'/yr',c:'r'},
+      {l:'EMIs D',v:'-₹'+fmt(cEMI*12)+'/yr',c:'r'},{l:'Other E',v:'-₹'+fmt(cOthr*12)+'/yr',c:'r'},
+      {l:'(G) Surplus',v:'₹'+fmt(G)+'/yr',c:'b'},{l:'(H) Monthly EMI',v:'₹'+fmt(H)+'/mo',c:'g'},
+      {l:`Eligible Loan (${minT} mo)`,v:'₹'+fmt(totalLoan),c:'g'},
+    ];
+  } else {
+    allData.forEach((d,idx)=>{
+      const lbl=idx===0?'Applicant':`Co-App ${idx}`;
+      const {H,breakdown:bd}=calcEligibleH(d,'ml',cibilHi);
+      const appT=d.age!==null?Math.min(tenureInput,maxT,Math.max(0,(75-d.age)*12)):Math.min(tenureInput,maxT);
+      if(idx>0) breakdown.push({sep:true});
+      breakdown.push({para:`[ ${lbl} ]`});
+      breakdown.push(...bd);
+      if(d.isSal&&d.empcat==='govtpen'&&d.pensionM>0&&d.mthsToRet!==null&&d.mthsToRet<appT){
+        const penAnnual=d.pensionM*12;
+        const penSus=susAmtHL(penAnnual,penAnnual);
+        const penG=penAnnual-penSus-(d.emiM+d.othrM)*12;
+        const penH=Math.max(0,penG/12);
+        const loanL=loanAmt(penH,roi,appT);
+        const loanD=loanAmt(Math.max(0,H-penH),roi,Math.min(d.mthsToRet,appT));
+        const appL=loanL+loanD;
+        breakdown.push({sep:true},{para:'Para 13.3'});
+        breakdown.push({l:'Pre-ret H',v:'₹'+fmt(H)+'/mo'},{l:'Post-ret H',v:'₹'+fmt(penH)+'/mo'});
+        breakdown.push({l:'Loan at lower',v:'₹'+fmt(loanL)},{l:'Loan at diff',v:'+₹'+fmt(loanD)});
+        breakdown.push({l:`[${lbl}] Eligible Loan`,v:'₹'+fmt(appL),c:'g'});
+        totalLoan+=Math.max(0,appL);totalEMI+=H;
+      } else {
+        const appL=loanAmt(H,roi,appT);
+        breakdown.push({l:`[${lbl}] Eligible Loan (${appT} mo)`,v:'₹'+fmt(appL),c:'g'});
+        totalLoan+=Math.max(0,appL);totalEMI+=H;
+        if(appT<Math.min(tenureInput,maxT)) notes.push(`${lbl}: tenure capped at ${appT} months.`);
+      }
+    });
+    if(numForms>1){breakdown.push({sep:true});breakdown.push({l:'Total Eligible Loan',v:'₹'+fmt(totalLoan),c:'g'});}
+  }
+  if(totalLoan>150000000){notes.push('Max loan ₹15 Cr for resident Indians.');totalLoan=150000000;}
+  notes.push('Loan quantum subject to 50% LTV of fair market value of property.');
+  notes.push('Eligibility is indicative. Subject to credit appraisal and sanctioning authority.');
+  resultBackScreen='s-ml';
+  showResult(totalLoan,totalEMI,Math.min(tenureInput,maxT),roi,breakdown,notes,'Mortgage Loan · Retail Assets');
+}
+
+// ═══════════════════════════════════════════════
+// PERSONAL LOAN
+// ═══════════════════════════════════════════════
+function onPLScheme(){
+  const s=document.getElementById('pl-scheme').value;
+  document.getElementById('pl-govt-wrap').style.display=s==='govt'?'block':'none';
+  document.getElementById('pl-pension-wrap').style.display=s==='pension'?'block':'none';
+}
+function setPLSalAcc(v){
+  plSalAcc=v;
+  document.getElementById('pl-sal-yes').classList.toggle('on',v);
+  document.getElementById('pl-sal-no').classList.toggle('on',!v);
+  document.getElementById('pl-sal-hint').textContent=v?'Max loan: ₹25 lakh (with salary a/c)':'Max loan: ₹15 lakh (no salary a/c / no employer undertaking)';
+}
+function onPLDob(){
+  const dobEl=document.getElementById('pl-dob');
+  const hintEl=document.getElementById('pl-dob-hint');
+  if(!dobEl||!dobEl.value) return;
+  const d=new Date(dobEl.value),t=new Date();
+  let age=t.getFullYear()-d.getFullYear();
+  const m=t.getMonth()-d.getMonth();
+  if(m<0||(m===0&&t.getDate()<d.getDate())) age--;
+  const retEl=document.getElementById('pl-retage');
+  const retAge=retEl?parseInt(retEl.value):60;
+  const mtr=Math.max(0,(retAge-age)*12);
+  hintEl.className='hint ok';
+  hintEl.textContent=`Age: ${age} yrs · Months to retirement at ${retAge}: ${mtr} months`;
+  document.getElementById('pl-tenure-hint').textContent=`Max tenure: min(84, ${mtr}) = ${Math.min(84,mtr)} months`;
+}
+function onPLTenure(){
+  const dobEl=document.getElementById('pl-dob');
+  const retEl=document.getElementById('pl-retage');
+  const tEl=document.getElementById('pl-tenure');
+  const hEl=document.getElementById('pl-tenure-hint');
+  if(!dobEl||!dobEl.value){hEl.textContent='Enter DOB to see tenure limit.';return;}
+  const d=new Date(dobEl.value),t=new Date();
+  let age=t.getFullYear()-d.getFullYear();
+  const mo=t.getMonth()-d.getMonth();
+  if(mo<0||(mo===0&&t.getDate()<d.getDate())) age--;
+  const retAge=retEl?parseInt(retEl.value):60;
+  const mtr=Math.max(0,(retAge-age)*12);
+  const maxT=Math.min(84,mtr);
+  const v=parseInt(tEl.value)||0;
+  if(v>maxT){hEl.className='hint w';hEl.textContent=`⚠️ Max tenure: ${maxT} months (co-terminus with retirement).`;}
+  else if(v>0){hEl.className='hint ok';hEl.textContent=`✓ Within ${maxT} months.`;}
+}
+function livePLSus(){
+  const gross=parseFloat(document.getElementById('pl-gross').value)||0;
+  const tax=parseFloat(document.getElementById('pl-tax').value)||0;
+  const bonus=parseFloat(document.getElementById('pl-bonus').value)||0;
+  const boxEl=document.getElementById('pl-sus-box');
+  const txtEl=document.getElementById('pl-sus-txt');
+  if(gross<=0){boxEl.style.display='none';return;}
+  const annualGross=gross*12+bonus;
+  const annualTax=tax*12;
+  const netC=annualGross-annualTax;
+  const susAmt=susAmtHL(annualGross,netC);
+  boxEl.style.display='block';
+  txtEl.textContent=`Slab: ${susLabelHL(annualGross)} on Net ₹${fmt(netC/12)}/mo = Sustenance ₹${fmt(susAmt/12)}/mo`;
+}
+function calcPLGovt(){
+  const roi=parseFloat(document.getElementById('pl-roi').value)||0;
+  const tenureInput=parseInt(document.getElementById('pl-tenure').value)||0;
+  if(!roi||!tenureInput){alert('Please enter ROI and Tenure.');return;}
+  const gross=parseFloat(document.getElementById('pl-gross').value)||0;
+  const tax=parseFloat(document.getElementById('pl-tax').value)||0;
+  const bonus=parseFloat(document.getElementById('pl-bonus').value)||0;
+  const emiM=parseFloat(document.getElementById('pl-emi').value)||0;
+  const othrM=parseFloat(document.getElementById('pl-othr').value)||0;
+  const dobEl=document.getElementById('pl-dob');
+  const retEl=document.getElementById('pl-retage');
+  const retAge=retEl?parseInt(retEl.value):60;
+  let mtr=tenureInput;
+  if(dobEl&&dobEl.value){
+    const d=new Date(dobEl.value),t=new Date();
+    let age=t.getFullYear()-d.getFullYear();
+    const mo=t.getMonth()-d.getMonth();
+    if(mo<0||(mo===0&&t.getDate()<d.getDate())) age--;
+    mtr=Math.max(0,(retAge-age)*12);
+  }
+  const effTenure=Math.min(tenureInput,84,mtr);
+  const annualGross=gross*12+bonus;
+  const annualTax=tax*12;
+  const netC=annualGross-annualTax;
+  const susAmt=susAmtHL(annualGross,netC);
+  const G=netC-susAmt-(emiM+othrM)*12;
+  const H=Math.max(0,G/12);
+  const loan=loanAmt(H,roi,effTenure);
+  const maxLoan=plSalAcc?2500000:1500000;
+  const finalLoan=Math.min(loan,maxLoan);
+  const notes=[];
+  if(loan>maxLoan) notes.push(`Capped at ₹${fmt(maxLoan)} (${plSalAcc?'with':'without'} salary a/c limit).`);
+  notes.push('No co-applicant income considered for PL Govt. Guarantor may be taken.');
+  notes.push('Eligibility indicative. Subject to credit appraisal.');
+  const breakdown=[
+    {l:'(A) Gross Annual Income'+(bonus>0?` (incl. ₹${fmt(bonus)} bonus)`:''   ),v:'₹'+fmt(annualGross)+'/yr'},
+    {l:'(B) Income Tax',v:'-₹'+fmt(annualTax)+'/yr',c:'r'},
+    {l:'(C) Net Income',v:'₹'+fmt(netC)+'/yr'},
+    {l:`(F) Sustenance — ${susLabelHL(annualGross)}`,v:'-₹'+fmt(susAmt)+'/yr',c:'r'},
+    {l:'(D) EMI Obligations',v:'-₹'+fmt(emiM*12)+'/yr',c:'r'},
+    {l:'(E) Other Outgoings',v:'-₹'+fmt(othrM*12)+'/yr',c:'r'},
+    {l:'(G) Max Annual Surplus',v:'₹'+fmt(G)+'/yr',c:'b'},
+    {l:'(H) Max Monthly EMI',v:'₹'+fmt(H)+'/mo',c:'g'},
+    {l:`Eligible Loan (${effTenure} mo)`,v:'₹'+fmt(loan),c:'g'},
+  ];
+  if(loan>maxLoan) breakdown.push({l:'After product cap',v:'₹'+fmt(finalLoan),c:'g'});
+  resultBackScreen='s-pl';
+  showResult(finalLoan,H,effTenure,roi,breakdown,notes,'Personal Loan — Govt Employee');
+}
+
+// PENSIONER
+function setPenType(t){
+  penType=t;
+  document.getElementById('pen-t1').classList.toggle('on',t==='pensioner');
+  document.getElementById('pen-t2').classList.toggle('on',t==='family');
+  onPenDob();onPenNMP();
+}
+function onPenDob(){
+  const dobEl=document.getElementById('pen-dob');
+  const hintEl=document.getElementById('pen-dob-hint');
+  if(!dobEl||!dobEl.value){hintEl.textContent='';return;}
+  const d=new Date(dobEl.value),t=new Date();
+  let age=t.getFullYear()-d.getFullYear();
+  const mo=t.getMonth()-d.getMonth();
+  if(mo<0||(mo===0&&t.getDate()<d.getDate())) age--;
+  const exitAge=penType==='family'?70:75;
+  if(age>=exitAge){hintEl.className='hint w';hintEl.textContent=`⚠️ Exceeds exit age of ${exitAge} years for ${penType==='family'?'family pensioner':'pensioner'}.`;}
+  else{hintEl.className='hint ok';hintEl.textContent=`Age: ${age} yrs · Exit age: ${exitAge} yrs · Max tenure: ${age>70?36:60} months`;}
+  onPenNMP();
+}
+function onPenNMP(){
+  const nmp=parseFloat(document.getElementById('pen-nmp').value)||0;
+  const preEl=document.getElementById('pen-calc-preview');
+  const txtEl=document.getElementById('pen-preview-txt');
+  if(nmp<=0){preEl.style.display='none';return;}
+  const sus=nmp*0.5;
+  const avail=nmp-sus;
+  const elig18=nmp*18;
+  const dobEl=document.getElementById('pen-dob');
+  let age=null;
+  if(dobEl&&dobEl.value){
+    const d=new Date(dobEl.value),t=new Date();
+    age=t.getFullYear()-d.getFullYear();
+    const mo=t.getMonth()-d.getMonth();
+    if(mo<0||(mo===0&&t.getDate()<d.getDate())) age--;
+  }
+  const isFamily=penType==='family';
+  let maxCap=isFamily?300000:age!==null&&age>70?500000:1000000;
+  const finalElig=Math.min(elig18,maxCap);
+  preEl.style.display='block';
+  txtEl.textContent=`Net pension ₹${fmt(nmp)}/mo · Sustenance 50% = ₹${fmt(sus)}/mo · 18× = ₹${fmt(elig18)} · Cap: ₹${fmt(maxCap)} · Eligible: ₹${fmt(finalElig)}`;
+}
+function calcPension(){
+  const roi=parseFloat(document.getElementById('pen-roi').value)||0;
+  if(!roi){alert('Please enter Rate of Interest.');return;}
+  const nmp=parseFloat(document.getElementById('pen-nmp').value)||0;
+  if(!nmp){alert('Please enter Net Monthly Pension.');return;}
+  const dobEl=document.getElementById('pen-dob');
+  let age=null;
+  if(dobEl&&dobEl.value){
+    const d=new Date(dobEl.value),t=new Date();
+    age=t.getFullYear()-d.getFullYear();
+    const mo=t.getMonth()-d.getMonth();
+    if(mo<0||(mo===0&&t.getDate()<d.getDate())) age--;
+  }
+  const isFamily=penType==='family';
+  const exitAge=isFamily?70:75;
+  if(age!==null&&age>=exitAge){alert(`Applicant has crossed exit age of ${exitAge} years.`);return;}
+  const tenure=age!==null&&age>70?36:60;
+  const sus=nmp*0.5;
+  const avail=nmp-sus;
+  const elig18=nmp*18;
+  const maxCap=isFamily?300000:age!==null&&age>70?500000:1000000;
+  const loanBy18=Math.min(elig18,maxCap);
+  const loanByEMI=loanAmt(avail,roi,tenure);
+  const finalLoan=Math.min(loanBy18,loanByEMI);
+  const notes=[
+    `Pension type: ${isFamily?'Family Pensioner':'Pensioner'}.`,
+    `Tenure: ${tenure} months (${age!==null&&age>70?'above 70 yrs':'up to 70 yrs'}).`,
+    `Eligible = lower of 18× NMP (₹${fmt(loanBy18)}) and EMI-based (₹${fmt(loanByEMI)}).`,
+    'No co-applicant income considered. Guarantor may be taken.',
+  ];
+  const breakdown=[
+    {l:'Net Monthly Pension (NMP)',v:'₹'+fmt(nmp)+'/mo'},
+    {l:'Sustenance (50% of NMP)',v:'-₹'+fmt(sus)+'/mo',c:'r'},
+    {l:'Available for EMI (NMP − Sustenance)',v:'₹'+fmt(avail)+'/mo',c:'g'},
+    {sep:true},
+    {l:'Eligibility Method 1: 18 × NMP',v:'₹'+fmt(elig18)},
+    {l:`Product Cap (${isFamily?'family pensioner':age!==null&&age>70?'above 70 yrs':'up to 70 yrs'})`,v:'₹'+fmt(maxCap)},
+    {l:'Eligible by 18× rule',v:'₹'+fmt(loanBy18),c:'b'},
+    {sep:true},
+    {l:'Eligibility Method 2: EMI-based',v:''},
+    {l:`Available EMI × PV factor (${roi}% × ${tenure} mo)`,v:'₹'+fmt(loanByEMI),c:'b'},
+    {sep:true},
+    {l:'Final Eligible Loan (lower of both)',v:'₹'+fmt(finalLoan),c:'g'},
+  ];
+  resultBackScreen='s-pl';
+  showResult(finalLoan,avail,tenure,roi,breakdown,notes,'Union Cash Loan — Pensioner');
+}
+
+// ═══════════════════════════════════════════════
+// GENERIC FORM BUILDER (HL / VL / ML)
+// ═══════════════════════════════════════════════
+function buildGenericForms(pfx, nCoapp, empType, product){
+  const numForms=1+nCoapp;
+  const tabsEl=document.getElementById(pfx+'-tabs');
+  const formsEl=document.getElementById(pfx+'-forms');
+  tabsEl.innerHTML='';formsEl.innerHTML='';
+  // Store per-tab empType — default all to the product-level empType
+  window['_empMap_'+pfx] = window['_empMap_'+pfx] || {};
+  for(let i=0;i<numForms;i++){
+    if(window['_empMap_'+pfx][i]===undefined) window['_empMap_'+pfx][i]=empType;
+  }
+  // Reset if total changed
+  const prevLen=Object.keys(window['_empMap_'+pfx]).length;
+  if(prevLen!==numForms){
+    window['_empMap_'+pfx]={};
+    for(let i=0;i<numForms;i++) window['_empMap_'+pfx][i]=empType;
+  }
+  for(let i=0;i<numForms;i++){
+    const lbl=i===0?'Applicant':`Co-App ${i}`;
+    const b=document.createElement('button');
+    b.className='atab'+(i===0?' on':'');
+    b.textContent=lbl;
+    b.onclick=(idx=>()=>switchTab(pfx,idx,numForms))(i);
+    tabsEl.appendChild(b);
+    const d=document.createElement('div');
+    d.id=pfx+'-form-'+i;
+    d.style.display=i===0?'block':'none';
+    // Per-tab empType toggle (only for HL and ML; VL handles it separately)
+    const showEmpToggle = (product==='hl'||product==='ml');
+    const tabEmp=window['_empMap_'+pfx][i]||empType;
+    let toggleHTML='';
+    if(showEmpToggle){
+      toggleHTML=`<div class="fg"><label>Employment Type</label>
+      <div class="tgl-g">
+        <button class="tgl ${tabEmp==='salaried'?'on':''}" id="${pfx}-tab${i}-sal" onclick="setTabEmp('${pfx}',${i},${numForms},'salaried','${product}')">Salaried</button>
+        <button class="tgl ${tabEmp==='nonsalaried'?'on':''}" id="${pfx}-tab${i}-nsal" onclick="setTabEmp('${pfx}',${i},${numForms},'nonsalaried','${product}')">Non-Salaried</button>
+      </div></div>`;
+    }
+    d.innerHTML=toggleHTML+buildIncomeForm(pfx,i,tabEmp,product);
+    formsEl.appendChild(d);
+  }
+}
+
+function setTabEmp(pfx,idx,total,t,product){
+  window['_empMap_'+pfx]=window['_empMap_'+pfx]||{};
+  window['_empMap_'+pfx][idx]=t;
+  // Re-render just this tab's form
+  const tabEmp=t;
+  const d=document.getElementById(pfx+'-form-'+idx);
+  if(!d) return;
+  document.getElementById(pfx+'-tab'+idx+'-sal').classList.toggle('on',t==='salaried');
+  document.getElementById(pfx+'-tab'+idx+'-nsal').classList.toggle('on',t==='nonsalaried');
+  const toggleHTML=`<div class="fg"><label>Employment Type</label>
+    <div class="tgl-g">
+      <button class="tgl ${t==='salaried'?'on':''}" id="${pfx}-tab${idx}-sal" onclick="setTabEmp('${pfx}',${idx},${total},'salaried','${product}')">Salaried</button>
+      <button class="tgl ${t==='nonsalaried'?'on':''}" id="${pfx}-tab${idx}-nsal" onclick="setTabEmp('${pfx}',${idx},${total},'nonsalaried','${product}')">Non-Salaried</button>
+    </div></div>`;
+  d.innerHTML=toggleHTML+buildIncomeForm(pfx,idx,tabEmp,product);
+}
+function switchTab(pfx,idx,total){
+  document.querySelectorAll('#'+pfx+'-tabs .atab').forEach((b,i)=>b.classList.toggle('on',i===idx));
+  for(let i=0;i<total;i++){
+    const el=document.getElementById(pfx+'-form-'+i);
+    if(el) el.style.display=i===idx?'block':'none';
+  }
+}
+function setSteps(pfx,active){
+  for(let i=1;i<=3;i++){
+    const el=document.getElementById(pfx+'-st'+i);
+    if(!el) return;
+    el.classList.remove('on','done');
+    if(i<active) el.classList.add('done');
+    else if(i===active) el.classList.add('on');
+  }
+}
+
+// ═══════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════
+function fmt(n){
+  if(!n||isNaN(n)) return '0';
+  return Math.round(n).toLocaleString('en-IN');
+}
+
+// Init ML forms on page load
+window.addEventListener('DOMContentLoaded',()=>{
+  window['_empMap_hl']={};
+  window['_empMap_ml']={};
+  mlBuildForms();
+  hlBuildForms();
+});
+</script>
+</body>
+</html>
